@@ -3,7 +3,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> <!--skip-->
         <title>EasyRTC Demo: Instant Messaging + Rooms </title>
-        <link rel="stylesheet" type="text/css" href="/easyrtc/easyrtc.css" />
+        <link rel="stylesheet" type="text/css" href="/api/easyrtc.css" />
 
         <!--hide-->
         <link rel="stylesheet" type="text/css" href="css/landing.css" />
@@ -15,9 +15,9 @@
         <script type="text/javascript" src="js/prettify/jquery.min.js"></script>
         <!--show-->
         <!-- Assumes global locations for socket.io.js and easyrtc.js -->
-        <script src="/socket.io/socket.io.js"></script>
-        <script type="text/javascript" src="/easyrtc/easyrtc.js"></script>
-        <script type="text/javascript" src="js/demo_instant_messaging_rooms.js"></script>
+        <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
+        <script type="text/javascript" src="/api/easyrtc.js"></script>
+        <script type="text/javascript" src="js/elm_instant_messaging_rooms.js"></script>
         <!--hide-->
         <!-- Styles used within the demo -->
         <style type="text/css">
@@ -65,6 +65,10 @@
         <script>
           var node = document.getElementById('main');
           var app = Elm.Main.embed(node);
+
+          app.ports.connect.subscribe(function(username, password) {
+            connect(username, password);
+          })
         </script>
         <!--hide-->
         <div id="container">
@@ -78,6 +82,7 @@
                 <h1>EasyRTC Demo: Instant Messaging + Rooms</h1>
                 <p><strong>Note:</strong> This is primarily an application new features going into EasyRTC. It's currently not written to be a tutorial, but it does demonstrate how to use various features like presence and room targeted messaging.</p>
                 <hr />
+                <!--
                 <h2>The Demo</h2>
                 <!--show-->
                 <div class="preconnection">
@@ -88,6 +93,7 @@
                     </div>
                     <hr>
                 </div>
+                -->
                 <div class="postconnection">
                     <button onclick="disconnect();">Disconnect from server.</button>
                 </div>

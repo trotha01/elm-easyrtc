@@ -184,4 +184,4 @@ test/reports/
 bower_components/
 
 # ELM
-demos/elm-stuff
+elm-stuff

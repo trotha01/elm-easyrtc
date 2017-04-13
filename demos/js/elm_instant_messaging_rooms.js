@@ -169,7 +169,9 @@ function peerListener(who, msgType, content, targeting) {
     addToConversation(who, msgType, content, targeting);
 }
 
-function connect() {
+function connect(credentials) {
+    console.log("Username: ", credentials.username)
+    console.log("Password: ", credentials.password)
     easyrtc.setSocketUrl(":8080");
     easyrtc.setPeerListener(peerListener);
     easyrtc.setRoomOccupantListener(occupantListener);
@@ -180,14 +182,8 @@ function connect() {
         console.log("disconnect listener fired");
     });
     updatePresence();
-    var username = document.getElementById("userNameField").value;
-    var password = document.getElementById("credentialField").value;
-    if (username) {
-        easyrtc.setUsername(username);
-    }
-    if (password) {
-        easyrtc.setCredential({password: password});
-    }
+    easyrtc.setUsername(credentials.username);
+    easyrtc.setCredential({password: credentials.password});
     easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
 }
 
