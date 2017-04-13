@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <title></title>
+    <meta charset='utf-8'/>
+    <link rel='stylesheet' href='' type='text/css'>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/easyrtc/easyrtc.js"></script>
+    <script type="text/javascript" src="js/prettify/jquery.min.js"></script>
+    <script type="text/javascript" src="js/my_instant_messaging_rooms.js"></script>
+  </head>
+
+  <body onload="initApp();">
+    <div id="main">
+
+      <div class="preconnection">
+        Username: <input type="text" id="userNameField" />
+        Password: <input type="text" id="credentialField" />
+        <div >
+          <button id="connectButton" onclick="connect();">Connect</button>
+        </div>
+        <hr>
+      </div>
+
+      <div id="sendMessageArea">
+
+        <div id="iam">Not connected yet</div>
+        <textarea id="sendMessageText" placeholder="Enter your message here"></textarea>
+
+        Rooms:
+        <div id="rooms"></div>
+      </div>
+
+      <div id="receiveMessageArea">
+        Received Messages:
+        <div id="conversation"></div>
+      </div>
+
+    </div>
+
+  </body>
+</html>
+
