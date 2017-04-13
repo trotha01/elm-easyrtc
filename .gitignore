@@ -182,3 +182,6 @@ desktopCapture
 /api/labs/desktopCapture
 test/reports/
 bower_components/
+
+# ELM
+demos/elm-stuff
