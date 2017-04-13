@@ -1,7 +1,7 @@
 port module Main exposing (..)
 
-import Html exposing (Html, h2, div, text, input, button)
-import Html.Attributes exposing (class, id, type_)
+import Html exposing (Html, h2, div, text, input, button, hr, textarea)
+import Html.Attributes exposing (class, id, type_, placeholder)
 import Html.Events exposing (onInput, onClick)
 
 
@@ -72,10 +72,40 @@ view model =
                 [ button [ id "connectButton", onClick Connect ] [ text "Connect" ]
                 ]
             ]
+        , div [ class "postconnection" ]
+            [ hr [] []
+            , div [ id "sendMessageArea" ]
+                [ div [ id "iam" ] [ text "Not connected yet" ]
+                , textarea [ id "sendMessageText", placeholder "Enter your message here" ] []
+                , text "Rooms"
+                , div [ id "rooms" ] []
+                ]
+            , div [ id "receiveMessageArea" ]
+                [ text "Received Messages:"
+                , div [ id "conversation" ] []
+                ]
+            ]
         ]
 
 
 
+{--
+  <div class="postconnection">
+      <hr>
+      <div id="sendMessageArea">
+
+          <div id="iam">Not connected yet</div>
+          <textarea id="sendMessageText" placeholder="Enter your message here"></textarea>
+
+          Rooms:
+          <div id="rooms"></div>
+      </div>
+      <div id="receiveMessageArea">
+          Received Messages:
+          <div id="conversation"></div>
+      </div>
+  </div>
+--}
 -- SUBSCRIPTIONS
 
 
