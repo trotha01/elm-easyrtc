@@ -60,16 +60,6 @@
         <!--show-->
     </head>
     <body onload="initApp();" >
-        <div id="main"></div>
-        <script src="elm.js"></script>
-        <script>
-          var node = document.getElementById('main');
-          var app = Elm.Main.embed(node);
-
-          app.ports.connect.subscribe(function(username, password) {
-            connect(username, password);
-          })
-        </script>
         <!--hide-->
         <div id="container">
             <div id="header">
@@ -84,7 +74,6 @@
                 <hr />
                 <!--
                 <h2>The Demo</h2>
-                <!--show-->
                 <div class="preconnection">
                     Username: <input type="text" id="userNameField" />
                     Password: <input type="text" id="credentialField" />
@@ -94,6 +83,10 @@
                     <hr>
                 </div>
                 -->
+
+               <div id="elm"></div>
+               <script src="elm.js"></script>
+
                 <div class="postconnection">
                     <button onclick="disconnect();">Disconnect from server.</button>
                 </div>
@@ -201,6 +194,25 @@
         }
         );
 
+        </script>
+        <script>
+          var node = document.getElementById('elm');
+          var app = Elm.Main.embed(node);
+
+          app.ports.connect.subscribe(function(credentials) {
+
+            onSuccess = function loginSuccess(easyrtcid) {
+                 app.ports.loginSuccess.send(easyrtcid)
+
+                 // document.getElementById("iam").innerHTML = "I am " + easyrtcid;
+                 refreshRoomList();
+                 isConnected = true;
+                 displayFields();
+                 document.getElementById("main").className = "connected";
+            }
+
+            connect(credentials, onSuccess);
+          })
         </script>
     </body>
 </html>

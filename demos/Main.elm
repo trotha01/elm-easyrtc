@@ -24,12 +24,13 @@ main =
 type alias Model =
     { username : String
     , password : String
+    , id : String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { username = "", password = "" }, Cmd.none )
+    ( { username = "", password = "", id = "Not connected yet" }, Cmd.none )
 
 
 
@@ -40,6 +41,7 @@ type Msg
     = UpdateUsername String
     | UpdatePassword String
     | Connect
+    | LoginSuccess String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,6 +55,9 @@ update msg model =
 
         Connect ->
             ( model, connect { username = model.username, password = model.password } )
+
+        LoginSuccess id ->
+            ( { model | id = id }, Cmd.none )
 
 
 
@@ -75,7 +80,7 @@ view model =
         , div [ class "postconnection" ]
             [ hr [] []
             , div [ id "sendMessageArea" ]
-                [ div [ id "iam" ] [ text "Not connected yet" ]
+                [ div [ id "iam" ] [ text model.id ]
                 , textarea [ id "sendMessageText", placeholder "Enter your message here" ] []
                 , text "Rooms"
                 , div [ id "rooms" ] []
@@ -89,28 +94,11 @@ view model =
 
 
 
-{--
-  <div class="postconnection">
-      <hr>
-      <div id="sendMessageArea">
-
-          <div id="iam">Not connected yet</div>
-          <textarea id="sendMessageText" placeholder="Enter your message here"></textarea>
-
-          Rooms:
-          <div id="rooms"></div>
-      </div>
-      <div id="receiveMessageArea">
-          Received Messages:
-          <div id="conversation"></div>
-      </div>
-  </div>
---}
 -- SUBSCRIPTIONS
 
 
 subscriptions model =
-    Sub.none
+    loginSuccess LoginSuccess
 
 
 
@@ -124,3 +112,6 @@ type alias Credentials =
 
 
 port connect : Credentials -> Cmd msg
+
+
+port loginSuccess : (String -> msg) -> Sub msg

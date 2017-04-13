@@ -8260,12 +8260,9 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$Main$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: {username: '', password: ''},
+	_0: {username: '', password: '', id: 'Not connected yet'},
 	_1: _elm_lang$core$Platform_Cmd$none
 };
 var _user$project$Main$connect = _elm_lang$core$Native_Platform.outgoingPort(
@@ -8293,23 +8290,38 @@ var _user$project$Main$update = F2(
 						{password: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'Connect':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
 					_1: _user$project$Main$connect(
 						{username: model.username, password: model.password})
 				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{id: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 		}
 	});
-var _user$project$Main$Model = F2(
-	function (a, b) {
-		return {username: a, password: b};
+var _user$project$Main$loginSuccess = _elm_lang$core$Native_Platform.incomingPort('loginSuccess', _elm_lang$core$Json_Decode$string);
+var _user$project$Main$Model = F3(
+	function (a, b, c) {
+		return {username: a, password: b, id: c};
 	});
 var _user$project$Main$Credentials = F2(
 	function (a, b) {
 		return {username: a, password: b};
 	});
+var _user$project$Main$LoginSuccess = function (a) {
+	return {ctor: 'LoginSuccess', _0: a};
+};
+var _user$project$Main$subscriptions = function (model) {
+	return _user$project$Main$loginSuccess(_user$project$Main$LoginSuccess);
+};
 var _user$project$Main$Connect = {ctor: 'Connect'};
 var _user$project$Main$UpdatePassword = function (a) {
 	return {ctor: 'UpdatePassword', _0: a};
@@ -8448,7 +8460,7 @@ var _user$project$Main$view = function (model) {
 											},
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html$text('Not connected yet'),
+												_0: _elm_lang$html$Html$text(model.id),
 												_1: {ctor: '[]'}
 											}),
 										_1: {
