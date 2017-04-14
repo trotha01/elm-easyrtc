@@ -8265,6 +8265,7 @@ var _user$project$Main$init = {
 	_0: {
 		username: '',
 		password: '',
+		message: '',
 		id: 'Not connected yet',
 		rooms: {ctor: '[]'}
 	},
@@ -8288,7 +8289,7 @@ var _user$project$Main$addRoom = _elm_lang$core$Native_Platform.incomingPort('ad
 var _user$project$Main$sendMessage = _elm_lang$core$Native_Platform.outgoingPort(
 	'sendMessage',
 	function (v) {
-		return v;
+		return {message: v.message, room: v.room};
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
@@ -8347,21 +8348,36 @@ var _user$project$Main$update = F2(
 							})),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			case 'UpdateMessage':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{message: _p0._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: model,
-					_1: _user$project$Main$sendMessage(_p0._0)
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{message: ''}),
+					_1: _user$project$Main$sendMessage(
+						{room: _p0._0, message: model.message})
 				};
 		}
 	});
-var _user$project$Main$Model = F4(
-	function (a, b, c, d) {
-		return {username: a, password: b, id: c, rooms: d};
+var _user$project$Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {username: a, password: b, message: c, id: d, rooms: e};
 	});
 var _user$project$Main$Credentials = F2(
 	function (a, b) {
 		return {username: a, password: b};
+	});
+var _user$project$Main$Send = F2(
+	function (a, b) {
+		return {message: a, room: b};
 	});
 var _user$project$Main$SendMessage = function (a) {
 	return {ctor: 'SendMessage', _0: a};
@@ -8441,6 +8457,9 @@ var _user$project$Main$subscriptions = function (model) {
 		});
 };
 var _user$project$Main$Connect = {ctor: 'Connect'};
+var _user$project$Main$UpdateMessage = function (a) {
+	return {ctor: 'UpdateMessage', _0: a};
+};
 var _user$project$Main$UpdatePassword = function (a) {
 	return {ctor: 'UpdatePassword', _0: a};
 };
@@ -8591,7 +8610,11 @@ var _user$project$Main$view = function (model) {
 													_1: {
 														ctor: '::',
 														_0: _elm_lang$html$Html_Attributes$placeholder('Enter your message here'),
-														_1: {ctor: '[]'}
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$UpdateMessage),
+															_1: {ctor: '[]'}
+														}
 													}
 												},
 												{ctor: '[]'}),

@@ -24,6 +24,7 @@ main =
 type alias Model =
     { username : String
     , password : String
+    , message : String
     , id : String
     , rooms : List String
     }
@@ -31,7 +32,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { username = "", password = "", id = "Not connected yet", rooms = [] }, Cmd.none )
+    ( { username = "", password = "", message = "", id = "Not connected yet", rooms = [] }, Cmd.none )
 
 
 
@@ -41,6 +42,7 @@ init =
 type Msg
     = UpdateUsername String
     | UpdatePassword String
+    | UpdateMessage String
     | Connect
     | LoginSuccess String
     | RoomList (List String)
@@ -73,8 +75,11 @@ update msg model =
         AddRoom room ->
             ( { model | rooms = room :: model.rooms } |> Debug.log "model", Cmd.none )
 
+        UpdateMessage message ->
+            ( { model | message = message }, Cmd.none )
+
         SendMessage name ->
-            ( model, sendMessage name )
+            ( { model | message = "" }, sendMessage { room = name, message = model.message } )
 
 
 
@@ -98,7 +103,7 @@ view model =
             [ hr [] []
             , div [ id "sendMessageArea" ]
                 [ div [ id "iam" ] [ text model.id ]
-                , textarea [ id "sendMessageText", placeholder "Enter your message here" ] []
+                , textarea [ id "sendMessageText", placeholder "Enter your message here", onInput UpdateMessage ] []
                 , text "Rooms"
                 , div [ id "rooms" ] (rooms model)
                 ]
@@ -166,6 +171,12 @@ type alias Credentials =
     }
 
 
+type alias Send =
+    { message : String
+    , room : String
+    }
+
+
 port connect : Credentials -> Cmd msg
 
 
@@ -181,4 +192,4 @@ port roomList : (List String -> msg) -> Sub msg
 port addRoom : (String -> msg) -> Sub msg
 
 
-port sendMessage : RoomName -> Cmd msg
+port sendMessage : Send -> Cmd msg

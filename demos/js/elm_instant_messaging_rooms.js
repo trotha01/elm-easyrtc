@@ -54,8 +54,8 @@ function connect(credentials, onSuccess) {
     // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
 }
 
-app.ports.sendMessage.subscribe(function(roomName) {
-	sendMessage(null, roomName);
+app.ports.sendMessage.subscribe(function(data) {
+	sendMessage(null, data.room, data.message);
 });
 
 app.ports.connect.subscribe(function(credentials) {
@@ -330,9 +330,9 @@ function getGroupId() {
 }
 
 
-function sendMessage(destTargetId, destRoom) {
+function sendMessage(destTargetId, destRoom, text) {
     console.log("SendMessage("+destRoom+")");
-    var text = document.getElementById('sendMessageText').value;
+    // var text = document.getElementById('sendMessageText').value;
     if (text.replace(/\s/g, "").length === 0) { // Don't send just whitespace
         return;
     }
