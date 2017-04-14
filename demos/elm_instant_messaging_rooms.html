@@ -17,7 +17,6 @@
         <!-- Assumes global locations for socket.io.js and easyrtc.js -->
         <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
         <script type="text/javascript" src="/api/easyrtc.js"></script>
-        <script type="text/javascript" src="js/elm_instant_messaging_rooms.js"></script>
         <!--hide-->
         <!-- Styles used within the demo -->
         <style type="text/css">
@@ -86,6 +85,7 @@
 
                <div id="elm"></div>
                <script src="elm.js"></script>
+               <script type="text/javascript" src="js/elm_instant_messaging_rooms.js"></script>
 
                 <div class="postconnection">
                     <button onclick="disconnect();">Disconnect from server.</button>
@@ -187,32 +187,13 @@
         </div>
         <script type="text/javascript">
 
-        addQuickJoinButtons({
-            room1: {roomName: "room1", numberClients: " "},
-            room2: {roomName: "room2", numberClients: " "},
-            room3: {roomName: "room3", numberClients: " "}
-        }
-        );
+        // addQuickJoinButtons({
+        //     room1: {roomName: "room1", numberClients: " "},
+        //     room2: {roomName: "room2", numberClients: " "},
+        //     room3: {roomName: "room3", numberClients: " "}
+        // }
+        // );
 
-        </script>
-        <script>
-          var node = document.getElementById('elm');
-          var app = Elm.Main.embed(node);
-
-          app.ports.connect.subscribe(function(credentials) {
-
-            onSuccess = function loginSuccess(easyrtcid) {
-                 app.ports.loginSuccess.send(easyrtcid)
-
-                 // document.getElementById("iam").innerHTML = "I am " + easyrtcid;
-                 refreshRoomList();
-                 isConnected = true;
-                 displayFields();
-                 document.getElementById("main").className = "connected";
-            }
-
-            connect(credentials, onSuccess);
-          })
         </script>
     </body>
 </html>

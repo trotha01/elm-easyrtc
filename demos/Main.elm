@@ -25,12 +25,13 @@ type alias Model =
     { username : String
     , password : String
     , id : String
+    , rooms : List String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { username = "", password = "", id = "Not connected yet" }, Cmd.none )
+    ( { username = "", password = "", id = "Not connected yet", rooms = [] }, Cmd.none )
 
 
 
@@ -42,6 +43,13 @@ type Msg
     | UpdatePassword String
     | Connect
     | LoginSuccess String
+    | RoomList (List String)
+    | AddRoom String
+    | SendMessage RoomName
+
+
+type alias RoomName =
+    String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -57,7 +65,16 @@ update msg model =
             ( model, connect { username = model.username, password = model.password } )
 
         LoginSuccess id ->
-            ( { model | id = id }, Cmd.none )
+            ( { model | id = id }, refreshRoomList () )
+
+        RoomList rooms ->
+            ( { model | rooms = rooms }, Cmd.none )
+
+        AddRoom room ->
+            ( { model | rooms = room :: model.rooms } |> Debug.log "model", Cmd.none )
+
+        SendMessage name ->
+            ( model, sendMessage name )
 
 
 
@@ -83,7 +100,7 @@ view model =
                 [ div [ id "iam" ] [ text model.id ]
                 , textarea [ id "sendMessageText", placeholder "Enter your message here" ] []
                 , text "Rooms"
-                , div [ id "rooms" ] []
+                , div [ id "rooms" ] (rooms model)
                 ]
             , div [ id "receiveMessageArea" ]
                 [ text "Received Messages:"
@@ -93,12 +110,50 @@ view model =
         ]
 
 
+rooms : Model -> List (Html Msg)
+rooms model =
+    List.map room model.rooms
 
+
+room : String -> Html Msg
+room name =
+    div [ id name, class "roomDiv" ]
+        [ button [ onClick (SendMessage name) ] [ text name ]
+        , div [ id ("roomOccupant_" ++ name), class "roomOccupants" ] []
+        ]
+
+
+
+{--
+        var roomButtonHolder = document.getElementById('rooms');
+        var roomdiv = document.createElement("div");
+        roomdiv.id = roomid;
+        roomdiv.className = "roomDiv";
+
+        var roomButton = document.createElement("button");
+        roomButton.onclick = function() {
+            sendMessage(null, roomName);
+        };
+        var roomLabel = (document.createTextNode(roomName));
+        roomButton.appendChild(roomLabel);
+
+        roomdiv.appendChild(roomButton);
+        roomButtonHolder.appendChild(roomdiv);
+        var roomOccupants = document.createElement("div");
+        roomOccupants.id = genRoomOccupantName(roomName);
+        roomOccupants.className = "roomOccupants";
+        roomdiv.appendChild(roomOccupants);
+        $(roomdiv).append(" -<a href=\"javascript:\leaveRoom('" + roomName + "')\">leave</a>");
+--}
 -- SUBSCRIPTIONS
 
 
 subscriptions model =
-    loginSuccess LoginSuccess
+    Sub.batch
+        [ loginSuccess LoginSuccess
+        , roomList RoomList
+        , addRoom AddRoom
+        ]
 
 
 
@@ -115,3 +170,15 @@ port connect : Credentials -> Cmd msg
 
 
 port loginSuccess : (String -> msg) -> Sub msg
+
+
+port refreshRoomList : () -> Cmd msg
+
+
+port roomList : (List String -> msg) -> Sub msg
+
+
+port addRoom : (String -> msg) -> Sub msg
+
+
+port sendMessage : RoomName -> Cmd msg

@@ -8262,13 +8262,33 @@ var _elm_lang$html$Html_Events$Options = F2(
 
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
-	_0: {username: '', password: '', id: 'Not connected yet'},
+	_0: {
+		username: '',
+		password: '',
+		id: 'Not connected yet',
+		rooms: {ctor: '[]'}
+	},
 	_1: _elm_lang$core$Platform_Cmd$none
 };
 var _user$project$Main$connect = _elm_lang$core$Native_Platform.outgoingPort(
 	'connect',
 	function (v) {
 		return {username: v.username, password: v.password};
+	});
+var _user$project$Main$loginSuccess = _elm_lang$core$Native_Platform.incomingPort('loginSuccess', _elm_lang$core$Json_Decode$string);
+var _user$project$Main$refreshRoomList = _elm_lang$core$Native_Platform.outgoingPort(
+	'refreshRoomList',
+	function (v) {
+		return null;
+	});
+var _user$project$Main$roomList = _elm_lang$core$Native_Platform.incomingPort(
+	'roomList',
+	_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string));
+var _user$project$Main$addRoom = _elm_lang$core$Native_Platform.incomingPort('addRoom', _elm_lang$core$Json_Decode$string);
+var _user$project$Main$sendMessage = _elm_lang$core$Native_Platform.outgoingPort(
+	'sendMessage',
+	function (v) {
+		return v;
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
@@ -8297,30 +8317,128 @@ var _user$project$Main$update = F2(
 					_1: _user$project$Main$connect(
 						{username: model.username, password: model.password})
 				};
-			default:
+			case 'LoginSuccess':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{id: _p0._0}),
+					_1: _user$project$Main$refreshRoomList(
+						{ctor: '_Tuple0'})
+				};
+			case 'RoomList':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{rooms: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'AddRoom':
+				return {
+					ctor: '_Tuple2',
+					_0: A2(
+						_elm_lang$core$Debug$log,
+						'model',
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								rooms: {ctor: '::', _0: _p0._0, _1: model.rooms}
+							})),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$Main$sendMessage(_p0._0)
 				};
 		}
 	});
-var _user$project$Main$loginSuccess = _elm_lang$core$Native_Platform.incomingPort('loginSuccess', _elm_lang$core$Json_Decode$string);
-var _user$project$Main$Model = F3(
-	function (a, b, c) {
-		return {username: a, password: b, id: c};
+var _user$project$Main$Model = F4(
+	function (a, b, c, d) {
+		return {username: a, password: b, id: c, rooms: d};
 	});
 var _user$project$Main$Credentials = F2(
 	function (a, b) {
 		return {username: a, password: b};
 	});
+var _user$project$Main$SendMessage = function (a) {
+	return {ctor: 'SendMessage', _0: a};
+};
+var _user$project$Main$room = function (name) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$id(name),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('roomDiv'),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$button,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onClick(
+						_user$project$Main$SendMessage(name)),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(name),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$id(
+							A2(_elm_lang$core$Basics_ops['++'], 'roomOccupant_', name)),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('roomOccupants'),
+							_1: {ctor: '[]'}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$rooms = function (model) {
+	return A2(_elm_lang$core$List$map, _user$project$Main$room, model.rooms);
+};
+var _user$project$Main$AddRoom = function (a) {
+	return {ctor: 'AddRoom', _0: a};
+};
+var _user$project$Main$RoomList = function (a) {
+	return {ctor: 'RoomList', _0: a};
+};
 var _user$project$Main$LoginSuccess = function (a) {
 	return {ctor: 'LoginSuccess', _0: a};
 };
 var _user$project$Main$subscriptions = function (model) {
-	return _user$project$Main$loginSuccess(_user$project$Main$LoginSuccess);
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: _user$project$Main$loginSuccess(_user$project$Main$LoginSuccess),
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$roomList(_user$project$Main$RoomList),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$addRoom(_user$project$Main$AddRoom),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
 };
 var _user$project$Main$Connect = {ctor: 'Connect'};
 var _user$project$Main$UpdatePassword = function (a) {
@@ -8489,7 +8607,7 @@ var _user$project$Main$view = function (model) {
 															_0: _elm_lang$html$Html_Attributes$id('rooms'),
 															_1: {ctor: '[]'}
 														},
-														{ctor: '[]'}),
+														_user$project$Main$rooms(model)),
 													_1: {ctor: '[]'}
 												}
 											}

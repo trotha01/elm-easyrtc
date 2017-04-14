@@ -27,9 +27,149 @@ var selfEasyrtcid = "";
 var waitingForRoomList = true;
 var isConnected = false;
 
+var node = document.getElementById('elm');
+var app = Elm.Main.embed(node);
+
 function initApp() {
     document.getElementById("main").className = "notconnected";
 }
+
+function connect(credentials, onSuccess) {
+    console.log("Username: ", credentials.username)
+    console.log("Password: ", credentials.password)
+    easyrtc.setSocketUrl(":8080");
+    easyrtc.setPeerListener(peerListener);
+    // This will tell us who else is hooked up to the server
+    // easyrtc.setRoomOccupantListener(occupantListener);
+    easyrtc.setRoomEntryListener(roomEntryListener);
+    easyrtc.setDisconnectListener(function() {
+        jQuery('#rooms').empty();
+        document.getElementById("main").className = "notconnected";
+        console.log("disconnect listener fired");
+    });
+    updatePresence();
+    easyrtc.setUsername(credentials.username);
+    easyrtc.setCredential({password: credentials.password});
+    easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
+    // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
+}
+
+app.ports.sendMessage.subscribe(function(roomName) {
+	sendMessage(null, roomName);
+});
+
+app.ports.connect.subscribe(function(credentials) {
+
+  onSuccess = function (easyrtcid) {
+       app.ports.loginSuccess.send(easyrtcid)
+
+       // refreshRoomList();
+       isConnected = true;
+       displayFields();
+       document.getElementById("main").className = "connected";
+  }
+
+  connect(credentials, onSuccess);
+});
+
+app.ports.refreshRoomList.subscribe(function() {
+  onSuccess = function(roomList){
+    var roomNames = []
+    for (var roomName in roomList) {
+      roomNames.push(roomName)
+    }
+    console.log("ROOMS!!!");
+    console.log(roomNames);
+    app.ports.roomList.send(roomNames);
+  }
+
+  easyrtc.getRoomList(onSuccess, null);
+
+});
+
+function roomEntryListener(entered, roomName) {
+    console.log("roomEntryListener");
+    console.log(entered);
+    if (entered) { // entered a room
+        console.log("saw add of room " + roomName);
+        // addRoom(roomName, null, false);
+        app.ports.addRoom.send(roomName);
+    }
+    // refreshRoomList();
+}
+
+function addRoom(roomName, parmString, userAdded) {
+    console.log("addRoom(" + roomName + ")");
+    /*
+    if (!roomName) {
+        roomName = document.getElementById("roomToAdd").value;
+        parmString = document.getElementById("optRoomParms").value;
+    }
+    var roomid = genRoomDivName(roomName);
+    if (document.getElementById(roomid)) {
+        return;
+    }
+    */
+    var roomid = "roomBlock_" + roomName;
+    function addRoomButton() {
+
+        var roomButtonHolder = document.getElementById('rooms');
+        var roomdiv = document.createElement("div");
+        roomdiv.id = roomid;
+        roomdiv.className = "roomDiv";
+
+        var roomButton = document.createElement("button");
+        roomButton.onclick = function() {
+            // sendMessage(null, roomName);
+        };
+        var roomLabel = (document.createTextNode(roomName));
+        roomButton.appendChild(roomLabel);
+
+        roomdiv.appendChild(roomButton);
+        roomButtonHolder.appendChild(roomdiv);
+        var roomOccupants = document.createElement("div");
+        roomOccupants.id = genRoomOccupantName(roomName);
+        roomOccupants.className = "roomOccupants";
+        roomdiv.appendChild(roomOccupants);
+        $(roomdiv).append(" -<a href=\"javascript:\leaveRoom('" + roomName + "')\">leave</a>");
+    }
+
+    var roomParms = null;
+    /*
+    if (parmString && parmString !== "") {
+        try {
+            roomParms = JSON.parse(parmString);
+        } catch (error) {
+            roomParms = null;
+            easyrtc.showError(easyrtc.errCodes.DEVELOPER_ERR, "Room Parameters must be an object containing key/value pairs. eg: {\"fruit\":\"banana\",\"color\":\"yellow\"}");
+            return;
+        }
+    }
+    */
+    if (!isConnected || !userAdded) {
+        addRoomButton();
+        console.log("adding gui for room " + roomName);
+    }
+    else {
+        console.log("not adding gui for room " + roomName + " because already connected and it's a user action");
+    }
+  /*
+    if (userAdded) {
+        console.log("calling joinRoom(" + roomName + ") because it was a user action ");
+
+        easyrtc.joinRoom(roomName, roomParms,
+                function() {
+                   /* we'll geta room entry event for the room we were actually added to */
+  /*
+                },
+                function(errorCode, errorText, roomName) {
+                    easyrtc.showError(errorCode, errorText + ": room name was(" + roomName + ")");
+                });
+    }
+*/
+}
+
+
 
 function addToConversation(who, msgType, content, targeting) {
     // Escape html special characters, then add linefeeds.
@@ -69,68 +209,6 @@ function setCredential(event, value) {
 }
 
 
-function addRoom(roomName, parmString, userAdded) {
-    if (!roomName) {
-        roomName = document.getElementById("roomToAdd").value;
-        parmString = document.getElementById("optRoomParms").value;
-    }
-    var roomid = genRoomDivName(roomName);
-    if (document.getElementById(roomid)) {
-        return;
-    }
-    function addRoomButton() {
-
-        var roomButtonHolder = document.getElementById('rooms');
-        var roomdiv = document.createElement("div");
-        roomdiv.id = roomid;
-        roomdiv.className = "roomDiv";
-
-        var roomButton = document.createElement("button");
-        roomButton.onclick = function() {
-            sendMessage(null, roomName);
-        };
-        var roomLabel = (document.createTextNode(roomName));
-        roomButton.appendChild(roomLabel);
-
-        roomdiv.appendChild(roomButton);
-        roomButtonHolder.appendChild(roomdiv);
-        var roomOccupants = document.createElement("div");
-        roomOccupants.id = genRoomOccupantName(roomName);
-        roomOccupants.className = "roomOccupants";
-        roomdiv.appendChild(roomOccupants);
-        $(roomdiv).append(" -<a href=\"javascript:\leaveRoom('" + roomName + "')\">leave</a>");
-    }
-
-    var roomParms = null;
-    if (parmString && parmString !== "") {
-        try {
-            roomParms = JSON.parse(parmString);
-        } catch (error) {
-            roomParms = null;
-            easyrtc.showError(easyrtc.errCodes.DEVELOPER_ERR, "Room Parameters must be an object containing key/value pairs. eg: {\"fruit\":\"banana\",\"color\":\"yellow\"}");
-            return;
-        }
-    }
-    if (!isConnected || !userAdded) {
-        addRoomButton();
-        console.log("adding gui for room " + roomName);
-    }
-    else {
-        console.log("not adding gui for room " + roomName + " because already connected and it's a user action");
-    }
-    if (userAdded) {
-        console.log("calling joinRoom(" + roomName + ") because it was a user action ");
-
-        easyrtc.joinRoom(roomName, roomParms,
-                function() {
-                   /* we'll geta room entry event for the room we were actually added to */
-                },
-                function(errorCode, errorText, roomName) {
-                    easyrtc.showError(errorCode, errorText + ": room name was(" + roomName + ")");
-                });
-    }
-}
-
 
 function leaveRoom(roomName) {
     if (!roomName) {
@@ -143,25 +221,11 @@ function leaveRoom(roomName) {
 }
 
 
-function roomEntryListener(entered, roomName) {
-    if (entered) { // entered a room
-        console.log("saw add of room " + roomName);
-        addRoom(roomName, null, false);
-    }
-    else {
-        var roomNode = document.getElementById(genRoomDivName(roomName));
-        if (roomNode) {
-            document.getElementById('#rooms').removeChildNode(roomNode);
-        }
-    }
-    refreshRoomList();
-}
-
 
 function refreshRoomList() {
-    if( isConnected) {
-        easyrtc.getRoomList(addQuickJoinButtons, null);
-    }
+    // if( isConnected) {
+    //     easyrtc.getRoomList(addQuickJoinButtons, null);
+    // }
 }
 
 
@@ -169,30 +233,14 @@ function peerListener(who, msgType, content, targeting) {
     addToConversation(who, msgType, content, targeting);
 }
 
-function connect(credentials, onSuccess) {
-    console.log("Username: ", credentials.username)
-    console.log("Password: ", credentials.password)
-    easyrtc.setSocketUrl(":8080");
-    easyrtc.setPeerListener(peerListener);
-    easyrtc.setRoomOccupantListener(occupantListener);
-    easyrtc.setRoomEntryListener(roomEntryListener);
-    easyrtc.setDisconnectListener(function() {
-        jQuery('#rooms').empty();
-        document.getElementById("main").className = "notconnected";
-        console.log("disconnect listener fired");
-    });
-    updatePresence();
-    easyrtc.setUsername(credentials.username);
-    easyrtc.setCredential({password: credentials.password});
-    easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
-    // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
-}
-
 function disconnect() {
     easyrtc.disconnect();
 }
 
+/*
 function addQuickJoinButtons(roomList) {
+    console.log("add Quick Join Buttons");
+    console.log(roomList);
     var quickJoinBlock = document.getElementById("quickJoinBlock");
     var n = quickJoinBlock.childNodes.length;
     for (var i = n - 1; i >= 0; i--) {
@@ -231,17 +279,19 @@ function addQuickJoinButtons(roomList) {
         addQuickJoinButton(roomName, roomList[roomName].numberClients);
     }
 }
+*/
 
 
 
 function occupantListener(roomName, occupants, isPrimary) {
+    console.log("occupantListener");
     if (roomName === null) {
         return;
     }
     var roomId = genRoomOccupantName(roomName);
     var roomDiv = document.getElementById(roomId);
     if (!roomDiv) {
-        addRoom(roomName, "", false);
+        // addRoom(roomName, "", false);
         roomDiv = document.getElementById(roomId);
     }
     else {
@@ -251,7 +301,8 @@ function occupantListener(roomName, occupants, isPrimary) {
         var button = document.createElement("button");
         button.onclick = (function(roomname, easyrtcid) {
             return function() {
-                sendMessage(easyrtcid, roomName);
+		console.log("occupant listener message");
+                // sendMessage(easyrtcid, roomName);
             };
         })(roomName, easyrtcid);
         var presenceText = "";
@@ -280,6 +331,7 @@ function getGroupId() {
 
 
 function sendMessage(destTargetId, destRoom) {
+    console.log("SendMessage("+destRoom+")");
     var text = document.getElementById('sendMessageText').value;
     if (text.replace(/\s/g, "").length === 0) { // Don't send just whitespace
         return;
