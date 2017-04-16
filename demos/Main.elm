@@ -5,6 +5,15 @@ import Html.Attributes exposing (class, id, type_, placeholder)
 import Html.Events exposing (onInput, onClick)
 
 
+{-| TODO:
+ - Let user specify room
+ - Remove password
+ - Leave Room/Logout
+ - Handle server errors (retry connecting for the user to the same room)
+-}
+
+
+
 -- MAIN
 
 

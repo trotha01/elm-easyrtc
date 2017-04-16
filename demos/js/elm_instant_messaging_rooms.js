@@ -23,8 +23,6 @@
 //ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //POSSIBILITY OF SUCH DAMAGE.
 //
-var selfEasyrtcid = "";
-var waitingForRoomList = true;
 var isConnected = false;
 
 var node = document.getElementById('elm');
@@ -43,11 +41,11 @@ function connect(credentials, onSuccess) {
     // easyrtc.setRoomOccupantListener(occupantListener);
     easyrtc.setRoomEntryListener(roomEntryListener);
     easyrtc.setDisconnectListener(function() {
+	// TODO: send this to elm and let it handle it
         jQuery('#rooms').empty();
         document.getElementById("main").className = "notconnected";
         console.log("disconnect listener fired");
     });
-    updatePresence();
     easyrtc.setUsername(credentials.username);
     easyrtc.setCredential({password: credentials.password});
     easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
@@ -92,81 +90,8 @@ function roomEntryListener(entered, roomName) {
     console.log(entered);
     if (entered) { // entered a room
         console.log("saw add of room " + roomName);
-        // addRoom(roomName, null, false);
         app.ports.addRoom.send(roomName);
     }
-    // refreshRoomList();
-}
-
-function addRoom(roomName, parmString, userAdded) {
-    console.log("addRoom(" + roomName + ")");
-    /*
-    if (!roomName) {
-        roomName = document.getElementById("roomToAdd").value;
-        parmString = document.getElementById("optRoomParms").value;
-    }
-    var roomid = genRoomDivName(roomName);
-    if (document.getElementById(roomid)) {
-        return;
-    }
-    */
-    var roomid = "roomBlock_" + roomName;
-    function addRoomButton() {
-
-        var roomButtonHolder = document.getElementById('rooms');
-        var roomdiv = document.createElement("div");
-        roomdiv.id = roomid;
-        roomdiv.className = "roomDiv";
-
-        var roomButton = document.createElement("button");
-        roomButton.onclick = function() {
-            // sendMessage(null, roomName);
-        };
-        var roomLabel = (document.createTextNode(roomName));
-        roomButton.appendChild(roomLabel);
-
-        roomdiv.appendChild(roomButton);
-        roomButtonHolder.appendChild(roomdiv);
-        var roomOccupants = document.createElement("div");
-        roomOccupants.id = genRoomOccupantName(roomName);
-        roomOccupants.className = "roomOccupants";
-        roomdiv.appendChild(roomOccupants);
-        $(roomdiv).append(" -<a href=\"javascript:\leaveRoom('" + roomName + "')\">leave</a>");
-    }
-
-    var roomParms = null;
-    /*
-    if (parmString && parmString !== "") {
-        try {
-            roomParms = JSON.parse(parmString);
-        } catch (error) {
-            roomParms = null;
-            easyrtc.showError(easyrtc.errCodes.DEVELOPER_ERR, "Room Parameters must be an object containing key/value pairs. eg: {\"fruit\":\"banana\",\"color\":\"yellow\"}");
-            return;
-        }
-    }
-    */
-    if (!isConnected || !userAdded) {
-        addRoomButton();
-        console.log("adding gui for room " + roomName);
-    }
-    else {
-        console.log("not adding gui for room " + roomName + " because already connected and it's a user action");
-    }
-  /*
-    if (userAdded) {
-        console.log("calling joinRoom(" + roomName + ") because it was a user action ");
-
-        easyrtc.joinRoom(roomName, roomParms,
-                function() {
-                   /* we'll geta room entry event for the room we were actually added to */
-  /*
-                },
-                function(errorCode, errorText, roomName) {
-                    easyrtc.showError(errorCode, errorText + ": room name was(" + roomName + ")");
-                });
-    }
-*/
 }
 
 
@@ -373,18 +298,6 @@ function sendMessage(destTargetId, destRoom, text) {
 }
 
 
-/*
-function loginSuccess(easyrtcid) {
-    selfEasyrtcid = easyrtcid;
-    document.getElementById("iam").innerHTML = "I am " + easyrtcid;
-    refreshRoomList();
-    isConnected = true;
-    displayFields();
-    document.getElementById("main").className = "connected";
-}
-*/
-
-
 function displayFields() {
 
     var outstr = "Application fields<div style='margin-left:1em'>";
@@ -420,23 +333,6 @@ function loginFailure(errorCode, message) {
     jQuery('#rooms').empty();
 }
 
-var currentShowState = 'chat';
-var currentShowText = '';
-
-function setPresence(value) {
-    currentShowState = value;
-    updatePresence();
-}
-
-function updatePresenceStatus(value) {
-    currentShowText = value;
-    updatePresence();
-}
-
-function updatePresence()
-{
-    easyrtc.updatePresence(currentShowState, currentShowText);
-}
 
 function queryRoomNames() {
     var roomName = document.getElementById("queryRoom").value;
