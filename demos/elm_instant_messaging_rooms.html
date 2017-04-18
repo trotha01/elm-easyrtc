@@ -3,102 +3,21 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> <!--skip-->
         <title>EasyRTC Demo: Instant Messaging + Rooms </title>
-        <link rel="stylesheet" type="text/css" href="/api/easyrtc.css" />
 
-        <!--hide-->
-        <link rel="stylesheet" type="text/css" href="css/landing.css" />
-
-        <!-- Prettify Code -->
-        <script type="text/javascript" src="js/prettify/prettify.js"></script>
-        <link rel="stylesheet" type="text/css" href="js/prettify/prettify.css" />
-        <script type="text/javascript" src="js/prettify/loadAndFilter.js"></script>
-        <script type="text/javascript" src="js/prettify/jquery.min.js"></script>
-        <!--show-->
         <!-- Assumes global locations for socket.io.js and easyrtc.js -->
         <script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
         <script type="text/javascript" src="/api/easyrtc.js"></script>
-        <!--hide-->
-        <!-- Styles used within the demo -->
-        <style type="text/css">
-            #stuffToSend {
-                width:300px;
-            }
-            #sendMessageArea{
-                float:left;
-                width:400px;
-                padding-right:20px;
-            }
-            #sendMessageText{
-                width:100%;
-            }
-            #conversation {
-                height:150px;
-                border:solid 1px gray;
-                overflow-y:scroll;
-            }
-            .roomDiv {
-                margin-bottom: 15px;
-                background-color: antiquewhite;
-            }
-            .roomOccupants{
-                margin-left: 20px;
-            }
-            #main.connected>.preconnection{
-                display:none;
-            }
-            #main.notconnected>.postconnection{
-                display:none;
-            }
-            .quickJoin {
-                display: inline-block;
-            }
-            #quickJoinBlock {
-                display: inline-block;
-            }
-        </style>
-        <!--show-->
     </head>
-    <body onload="initApp();" >
-        <!--hide-->
-        <div id="container">
-            <div id="header">
-                <a href="index.html"><img id="logo_easyrtc" src="images/easyrtc_logo.png" alt="EasyRTC" style="" /></a>
-            </div>
-            <div id="menu">
-		<a class="menu_link" href="index.html">
-		<div class="menu_item">Local Demos</div>
-		</a>
-		<a class="menu_link" href="https://github.com/priologic/easyrtc/tree/master/docs">
-		<div class="menu_item">Documentation</div></a><a class="menu_link" href="https://easyrtc.com/forum/">
-		<div class="menu_item">Support: EasyRTC Forums</div></a>
-		<a class="menu_link" href="http://www.easyrtc.com/"><div class="menu_item">EasyRTC.com</div></a></div>
-            <div id="main">
+    <body>
+      <!-- Main Content -->
+      <h1>EasyRTC Demo: Instant Messaging + Rooms</h1>
+      <p><strong>Note:</strong> This is primarily an application new features going into EasyRTC. It's currently not written to be a tutorial, but it does demonstrate how to use various features like presence and room targeted messaging.</p>
+      <hr />
 
-                <!-- Main Content -->
-                <h1>EasyRTC Demo: Instant Messaging + Rooms</h1>
-                <p><strong>Note:</strong> This is primarily an application new features going into EasyRTC. It's currently not written to be a tutorial, but it does demonstrate how to use various features like presence and room targeted messaging.</p>
-                <hr />
-                <!--
-                <h2>The Demo</h2>
-                <div class="preconnection">
-                    Username: <input type="text" id="userNameField" />
-                    Password: <input type="text" id="credentialField" />
-                    <div >
-                        <button id="connectButton" onclick="connect();">Connect</button>
-                    </div>
-                    <hr>
-                </div>
-                -->
+      <div id="elm"></div>
+      <script src="elm.js"></script>
+      <script type="text/javascript" src="js/elm_instant_messaging_rooms.js"></script>
 
-               <div id="elm"></div>
-               <script src="elm.js"></script>
-               <script type="text/javascript" src="js/elm_instant_messaging_rooms.js"></script>
-
-                <div class="postconnection">
-                    <button onclick="disconnect();">Disconnect from server.</button>
-                </div>
-
-            </div>
-        </div>
+      </div>
     </body>
 </html>

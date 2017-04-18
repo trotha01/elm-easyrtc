@@ -8668,19 +8668,15 @@ var _user$project$Main$view = function (model) {
 												{ctor: '[]'}),
 											_1: {
 												ctor: '::',
-												_0: _elm_lang$html$Html$text('Rooms'),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$div,
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$id('rooms'),
-															_1: {ctor: '[]'}
-														},
-														_user$project$Main$rooms(model)),
-													_1: {ctor: '[]'}
-												}
+												_0: A2(
+													_elm_lang$html$Html$div,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$id('rooms'),
+														_1: {ctor: '[]'}
+													},
+													_user$project$Main$rooms(model)),
+												_1: {ctor: '[]'}
 											}
 										}
 									}),

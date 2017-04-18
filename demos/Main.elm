@@ -117,7 +117,6 @@ view model =
             , div [ id "sendMessageArea" ]
                 [ div [ id "iam" ] [ text model.id ]
                 , textarea [ id "sendMessageText", placeholder "Enter your message here", onInput UpdateMessage, value model.message ] []
-                , text "Rooms"
                 , div [ id "rooms" ] (rooms model)
                 ]
             , div [ id "receiveMessageArea" ]

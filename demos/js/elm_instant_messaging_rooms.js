@@ -23,14 +23,8 @@
 //ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //POSSIBILITY OF SUCH DAMAGE.
 //
-var isConnected = false;
-
 var node = document.getElementById('elm');
 var app = Elm.Main.embed(node);
-
-function initApp() {
-    document.getElementById("main").className = "notconnected";
-}
 
 function connect(credentials, onSuccess) {
     console.log("Username: ", credentials.username)
@@ -44,27 +38,19 @@ function connect(credentials, onSuccess) {
     easyrtc.setRoomEntryListener(roomEntryListener);
     easyrtc.setDisconnectListener(function() {
 	// TODO: send this to elm and let it handle it
-        jQuery('#rooms').empty();
-        document.getElementById("main").className = "notconnected";
         console.log("disconnect listener fired");
     });
     easyrtc.setUsername(credentials.username);
     easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
-    // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
 }
 
 app.ports.sendMessage.subscribe(function(data) {
-	sendMessage(null, data.room, data.message);
+	sendMessage(data.room, data.message);
 });
 
 app.ports.connect.subscribe(function(credentials) {
-
   onSuccess = function (easyrtcid) {
        app.ports.loginSuccess.send(easyrtcid)
-
-       // refreshRoomList();
-       isConnected = true;
-       document.getElementById("main").className = "connected";
   }
 
   connect(credentials, onSuccess);
@@ -76,8 +62,6 @@ app.ports.refreshRoomList.subscribe(function() {
     for (var roomName in roomList) {
       roomNames.push(roomName)
     }
-    console.log("ROOMS!!!");
-    console.log(roomNames);
     app.ports.roomList.send(roomNames);
   }
 
@@ -94,44 +78,12 @@ function roomEntryListener(entered, roomName) {
     }
 }
 
-
-
 function addToConversation(who, msgType, content, targeting) {
     console.log("received: ", {who: who, msgType: msgType, content: content, targeting: targeting});
     app.ports.recvMessage.send({who: who, content: content});
 }
 
-function genRoomDivName(roomName) {
-    return "roomblock_" + roomName;
-}
-
-function genRoomOccupantName(roomName) {
-    return "roomOccupant_" + roomName;
-}
-
-
-function leaveRoom(roomName) {
-    easyrtc.leaveRoom(roomName, null);
-}
-
-function disconnect() {
-    easyrtc.disconnect();
-}
-
-function occupantListener(roomName, occupants, isPrimary) {
-  // Handle if we want to know who else is hooked up to the server
-}
-
-function getGroupId() {
-        return null;
-}
-
-
-function sendMessage(destTargetId, destRoom, text) {
-    console.log("SendMessage("+destRoom+")");
-    if (text.replace(/\s/g, "").length === 0) { // Don't send just whitespace
-        return;
-    }
+function sendMessage(destRoom, text) {
     var dest = {};
     dest.targetRoom = destRoom;
 
@@ -147,32 +99,16 @@ function sendMessage(destTargetId, destRoom, text) {
 
 function loginFailure(errorCode, message) {
     easyrtc.showError("LOGIN-FAILURE", message);
-    document.getElementById('connectButton').disabled = false;
-    jQuery('#rooms').empty();
 }
 
-
-function queryRoomNames() {
-    var roomName = document.getElementById("queryRoom").value;
-    if( !roomName ) {
-        roomName = "default";
-    }
-    if( roomName ) {
-        console.log("getRoomOccupantsAsArray("+ roomName + ")=" + JSON.stringify(easyrtc.getRoomOccupantsAsArray(roomName)));
-        console.log("getRoomOccupantsAsMap(" + roomName + ")=" + JSON.stringify(easyrtc.getRoomOccupantsAsMap(roomName)));
-    }
-}
-function addApiField() {
-    var roomName = document.getElementById("apiroomname").value;
-    var fieldname = document.getElementById("apifieldname").value;
-    var fieldvaluetext = document.getElementById("apifieldvalue").value;
-    var fieldvalue;
-    if(fieldvaluetext.indexOf("{") >= 0) {
-        fieldvalue = JSON.parse(fieldvaluetext);
-    }
-    else {
-        fieldvalue = fieldvaluetext;
-    }
-    easyrtc.setRoomApiField(roomName, fieldname, fieldvalue);
+function leaveRoom(roomName) {
+    easyrtc.leaveRoom(roomName, null);
 }
 
+function disconnect() {
+    easyrtc.disconnect();
+}
+
+function occupantListener(roomName, occupants, isPrimary) {
+  // Handle if we want to know who else is hooked up to the server
+}
