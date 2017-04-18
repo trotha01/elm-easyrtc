@@ -8260,12 +8260,49 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _user$project$Main$viewMessage = function (message) {
+	return A2(
+		_elm_lang$html$Html$li,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$b,
+				{ctor: '[]'},
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html$text(
+						A2(_elm_lang$core$Basics_ops['++'], message.who, ': ')),
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(message.content),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _user$project$Main$viewMessages = function (messages) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'list-style', _1: 'none'},
+					_1: {ctor: '[]'}
+				}),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _user$project$Main$viewMessage, messages));
+};
 var _user$project$Main$init = {
 	ctor: '_Tuple2',
 	_0: {
 		username: '',
-		password: '',
 		message: '',
+		messages: {ctor: '[]'},
 		id: 'Not connected yet',
 		rooms: {ctor: '[]'}
 	},
@@ -8274,7 +8311,7 @@ var _user$project$Main$init = {
 var _user$project$Main$connect = _elm_lang$core$Native_Platform.outgoingPort(
 	'connect',
 	function (v) {
-		return {username: v.username, password: v.password};
+		return {username: v.username};
 	});
 var _user$project$Main$loginSuccess = _elm_lang$core$Native_Platform.incomingPort('loginSuccess', _elm_lang$core$Json_Decode$string);
 var _user$project$Main$refreshRoomList = _elm_lang$core$Native_Platform.outgoingPort(
@@ -8303,20 +8340,12 @@ var _user$project$Main$update = F2(
 						{username: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'UpdatePassword':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{password: _p0._0}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
 			case 'Connect':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
 					_1: _user$project$Main$connect(
-						{username: model.username, password: model.password})
+						{username: model.username})
 				};
 			case 'LoginSuccess':
 				return {
@@ -8356,7 +8385,7 @@ var _user$project$Main$update = F2(
 						{message: _p0._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'SendMessage':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -8365,20 +8394,57 @@ var _user$project$Main$update = F2(
 					_1: _user$project$Main$sendMessage(
 						{room: _p0._0, message: model.message})
 				};
+			default:
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							messages: A2(
+								_elm_lang$core$Basics_ops['++'],
+								model.messages,
+								{
+									ctor: '::',
+									_0: _p0._0,
+									_1: {ctor: '[]'}
+								})
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 		}
 	});
+var _user$project$Main$recvMessage = _elm_lang$core$Native_Platform.incomingPort(
+	'recvMessage',
+	A2(
+		_elm_lang$core$Json_Decode$andThen,
+		function (content) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (who) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{content: content, who: who});
+				},
+				A2(_elm_lang$core$Json_Decode$field, 'who', _elm_lang$core$Json_Decode$string));
+		},
+		A2(_elm_lang$core$Json_Decode$field, 'content', _elm_lang$core$Json_Decode$string)));
 var _user$project$Main$Model = F5(
 	function (a, b, c, d, e) {
-		return {username: a, password: b, message: c, id: d, rooms: e};
+		return {username: a, message: b, messages: c, id: d, rooms: e};
 	});
-var _user$project$Main$Credentials = F2(
-	function (a, b) {
-		return {username: a, password: b};
-	});
+var _user$project$Main$Credentials = function (a) {
+	return {username: a};
+};
 var _user$project$Main$Send = F2(
 	function (a, b) {
 		return {message: a, room: b};
 	});
+var _user$project$Main$Message = F2(
+	function (a, b) {
+		return {content: a, who: b};
+	});
+var _user$project$Main$RecvMessage = function (a) {
+	return {ctor: 'RecvMessage', _0: a};
+};
 var _user$project$Main$SendMessage = function (a) {
 	return {ctor: 'SendMessage', _0: a};
 };
@@ -8451,7 +8517,11 @@ var _user$project$Main$subscriptions = function (model) {
 				_1: {
 					ctor: '::',
 					_0: _user$project$Main$addRoom(_user$project$Main$AddRoom),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: _user$project$Main$recvMessage(_user$project$Main$RecvMessage),
+						_1: {ctor: '[]'}
+					}
 				}
 			}
 		});
@@ -8459,9 +8529,6 @@ var _user$project$Main$subscriptions = function (model) {
 var _user$project$Main$Connect = {ctor: 'Connect'};
 var _user$project$Main$UpdateMessage = function (a) {
 	return {ctor: 'UpdateMessage', _0: a};
-};
-var _user$project$Main$UpdatePassword = function (a) {
-	return {ctor: 'UpdatePassword', _0: a};
 };
 var _user$project$Main$UpdateUsername = function (a) {
 	return {ctor: 'UpdateUsername', _0: a};
@@ -8512,53 +8579,30 @@ var _user$project$Main$view = function (model) {
 								{ctor: '[]'}),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$html$Html$text('Password: '),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$input,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$type_('text'),
-											_1: {
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$id('credentialField'),
-												_1: {
-													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onInput(_user$project$Main$UpdatePassword),
-													_1: {ctor: '[]'}
-												}
-											}
-										},
-										{ctor: '[]'}),
-									_1: {
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{ctor: '[]'},
+									{
 										ctor: '::',
 										_0: A2(
-											_elm_lang$html$Html$div,
-											{ctor: '[]'},
+											_elm_lang$html$Html$button,
 											{
 												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$button,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$id('connectButton'),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Connect),
-															_1: {ctor: '[]'}
-														}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text('Connect'),
-														_1: {ctor: '[]'}
-													}),
+												_0: _elm_lang$html$Html_Attributes$id('connectButton'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onClick(_user$project$Main$Connect),
+													_1: {ctor: '[]'}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Connect'),
 												_1: {ctor: '[]'}
 											}),
 										_1: {ctor: '[]'}
-									}
-								}
+									}),
+								_1: {ctor: '[]'}
 							}
 						}
 					}),
@@ -8657,7 +8701,11 @@ var _user$project$Main$view = function (model) {
 														_0: _elm_lang$html$Html_Attributes$id('conversation'),
 														_1: {ctor: '[]'}
 													},
-													{ctor: '[]'}),
+													{
+														ctor: '::',
+														_0: _user$project$Main$viewMessages(model.messages),
+														_1: {ctor: '[]'}
+													}),
 												_1: {ctor: '[]'}
 											}
 										}),

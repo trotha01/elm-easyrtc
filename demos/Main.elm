@@ -1,13 +1,12 @@
 port module Main exposing (..)
 
-import Html exposing (Html, h2, div, text, input, button, hr, textarea)
-import Html.Attributes exposing (class, id, type_, placeholder)
+import Html exposing (Html, h2, div, text, input, button, hr, textarea, li, ul, b)
+import Html.Attributes exposing (class, id, type_, placeholder, style)
 import Html.Events exposing (onInput, onClick)
 
 
 {-| TODO:
  - Let user specify room
- - Remove password
  - Leave Room/Logout
  - Handle server errors (retry connecting for the user to the same room)
 -}
@@ -32,8 +31,8 @@ main =
 
 type alias Model =
     { username : String
-    , password : String
     , message : String
+    , messages : List Message
     , id : String
     , rooms : List String
     }
@@ -41,7 +40,14 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { username = "", password = "", message = "", id = "Not connected yet", rooms = [] }, Cmd.none )
+    ( { username = ""
+      , message = ""
+      , messages = []
+      , id = "Not connected yet"
+      , rooms = []
+      }
+    , Cmd.none
+    )
 
 
 
@@ -50,13 +56,13 @@ init =
 
 type Msg
     = UpdateUsername String
-    | UpdatePassword String
     | UpdateMessage String
     | Connect
     | LoginSuccess String
     | RoomList (List String)
     | AddRoom String
     | SendMessage RoomName
+    | RecvMessage Message
 
 
 type alias RoomName =
@@ -69,11 +75,8 @@ update msg model =
         UpdateUsername username ->
             ( { model | username = username }, Cmd.none )
 
-        UpdatePassword password ->
-            ( { model | password = password }, Cmd.none )
-
         Connect ->
-            ( model, connect { username = model.username, password = model.password } )
+            ( model, connect { username = model.username } )
 
         LoginSuccess id ->
             ( { model | id = id }, refreshRoomList () )
@@ -90,6 +93,9 @@ update msg model =
         SendMessage name ->
             ( { model | message = "" }, sendMessage { room = name, message = model.message } )
 
+        RecvMessage message ->
+            ( { model | messages = model.messages ++ [ message ] }, Cmd.none )
+
 
 
 -- VIEW
@@ -102,8 +108,6 @@ view model =
         , div [ class "preconnection" ]
             [ text "Username: "
             , input [ type_ "text", id "userNameField", onInput UpdateUsername ] []
-            , text "Password: "
-            , input [ type_ "text", id "credentialField", onInput UpdatePassword ] []
             , div []
                 [ button [ id "connectButton", onClick Connect ] [ text "Connect" ]
                 ]
@@ -118,9 +122,22 @@ view model =
                 ]
             , div [ id "receiveMessageArea" ]
                 [ text "Received Messages:"
-                , div [ id "conversation" ] []
+                , div [ id "conversation" ] [ (viewMessages model.messages) ]
                 ]
             ]
+        ]
+
+
+viewMessages : List Message -> Html Msg
+viewMessages messages =
+    ul [ style [ ( "list-style", "none" ) ] ] (List.map viewMessage messages)
+
+
+viewMessage : Message -> Html Msg
+viewMessage message =
+    li []
+        [ (b [] [ text <| message.who ++ ": " ])
+        , text message.content
         ]
 
 
@@ -167,6 +184,7 @@ subscriptions model =
         [ loginSuccess LoginSuccess
         , roomList RoomList
         , addRoom AddRoom
+        , recvMessage RecvMessage
         ]
 
 
@@ -176,13 +194,18 @@ subscriptions model =
 
 type alias Credentials =
     { username : String
-    , password : String
     }
 
 
 type alias Send =
     { message : String
     , room : String
+    }
+
+
+type alias Message =
+    { content : String
+    , who : String
     }
 
 
@@ -202,3 +225,6 @@ port addRoom : (String -> msg) -> Sub msg
 
 
 port sendMessage : Send -> Cmd msg
+
+
+port recvMessage : (Message -> msg) -> Sub msg

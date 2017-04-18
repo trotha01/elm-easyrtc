@@ -36,7 +36,10 @@ function connect(credentials, onSuccess) {
     console.log("Username: ", credentials.username)
     console.log("Password: ", credentials.password)
     easyrtc.setSocketUrl(":8080");
+
+    // Listen for data sent from other clients
     easyrtc.setPeerListener(peerListener);
+
     // This will tell us who else is hooked up to the server
     // easyrtc.setRoomOccupantListener(occupantListener);
     easyrtc.setRoomEntryListener(roomEntryListener);
@@ -47,7 +50,7 @@ function connect(credentials, onSuccess) {
         console.log("disconnect listener fired");
     });
     easyrtc.setUsername(credentials.username);
-    easyrtc.setCredential({password: credentials.password});
+    // easyrtc.setCredential({password: credentials.password});
     easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
     // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
 }
@@ -63,7 +66,6 @@ app.ports.connect.subscribe(function(credentials) {
 
        // refreshRoomList();
        isConnected = true;
-       displayFields();
        document.getElementById("main").className = "connected";
   }
 
@@ -97,26 +99,8 @@ function roomEntryListener(entered, roomName) {
 
 
 function addToConversation(who, msgType, content, targeting) {
-    // Escape html special characters, then add linefeeds.
-    if( !content) {
-        content = "**no body**";
-    }
-    content = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    content = content.replace(/\n/g, '<br />');
-    var targetingStr = "";
-    if (targeting) {
-        if (targeting.targetEasyrtcid) {
-            targetingStr += "user=" + targeting.targetEasyrtcid;
-        }
-        if (targeting.targetRoom) {
-            targetingStr += " room=" + targeting.targetRoom;
-        }
-        if (targeting.targetGroup) {
-            targetingStr += " group=" + targeting.targetGroup;
-        }
-    }
-    document.getElementById('conversation').innerHTML +=
-            "<b>" + who + " sent " + targetingStr + ":</b>&nbsp;" + content + "<br />";
+    console.log("received: ", {who: who, content: content});
+    app.ports.recvMessage.send({who: who, content: content});
 }
 
 function genRoomDivName(roomName) {
@@ -127,11 +111,13 @@ function genRoomOccupantName(roomName) {
     return "roomOccupant_" + roomName;
 }
 
+/*
 function setCredential(event, value) {
     if (event.keyCode === 13) {
         easyrtc.setCredential(value);
     }
 }
+*/
 
 
 
@@ -147,13 +133,6 @@ function leaveRoom(roomName) {
 
 
 
-function refreshRoomList() {
-    // if( isConnected) {
-    //     easyrtc.getRoomList(addQuickJoinButtons, null);
-    // }
-}
-
-
 function peerListener(who, msgType, content, targeting) {
     addToConversation(who, msgType, content, targeting);
 }
@@ -162,93 +141,9 @@ function disconnect() {
     easyrtc.disconnect();
 }
 
-/*
-function addQuickJoinButtons(roomList) {
-    console.log("add Quick Join Buttons");
-    console.log(roomList);
-    var quickJoinBlock = document.getElementById("quickJoinBlock");
-    var n = quickJoinBlock.childNodes.length;
-    for (var i = n - 1; i >= 0; i--) {
-        quickJoinBlock.removeChild(quickJoinBlock.childNodes[i]);
-    }
-    function addQuickJoinButton(roomname, numberClients) {
-        var checkid = "roomblock_" + roomname;
-        if (document.getElementById(checkid)) {
-            return; // already present so don't add again
-        }
-        var id = "quickjoin_" + roomname;
-        var div = document.createElement("div");
-        div.id = id;
-        div.className = "quickJoin";
-        var parmsField = document.getElementById("optRoomParms");
-        var button = document.createElement("button");
-        button.onclick = function() {
-            addRoom(roomname, parmsField.value, true);
-            refreshRoomList();
-        };
-        button.appendChild(document.createTextNode("Join " + roomname + "(" + numberClients + ")"));
-        div.appendChild(button);
-        quickJoinBlock.appendChild(div);
-
-    }
-    if( !roomList["room1"]) {
-        roomList["room1"] = { numberClients:0};
-    }
-    if( !roomList["room2"]) {
-        roomList["room2"] = { numberClients:0};
-    }
-    if( !roomList["room3"]) {
-        roomList["room3"] = { numberClients:0};
-    }
-    for (var roomName in roomList) {
-        addQuickJoinButton(roomName, roomList[roomName].numberClients);
-    }
-}
-*/
-
-
-
 function occupantListener(roomName, occupants, isPrimary) {
-    console.log("occupantListener");
-    if (roomName === null) {
-        return;
-    }
-    var roomId = genRoomOccupantName(roomName);
-    var roomDiv = document.getElementById(roomId);
-    if (!roomDiv) {
-        // addRoom(roomName, "", false);
-        roomDiv = document.getElementById(roomId);
-    }
-    else {
-        jQuery(roomDiv).empty();
-    }
-    for (var easyrtcid in occupants) {
-        var button = document.createElement("button");
-        button.onclick = (function(roomname, easyrtcid) {
-            return function() {
-		console.log("occupant listener message");
-                // sendMessage(easyrtcid, roomName);
-            };
-        })(roomName, easyrtcid);
-        var presenceText = "";
-        if (occupants[easyrtcid].presence) {
-            presenceText += "(";
-            if (occupants[easyrtcid].presence.show) {
-                presenceText += "show=" + occupants[easyrtcid].presence.show + " ";
-            }
-            if (occupants[easyrtcid].presence.status) {
-                presenceText += "status=" + occupants[easyrtcid].presence.status;
-            }
-            presenceText += ")";
-        }
-        var label = document.createTextNode(easyrtc.idToName(easyrtcid) + presenceText);
-        button.appendChild(label);
-        roomDiv.appendChild(button);
-    }
-    refreshRoomList();
+  // Handle if we want to know who else is hooked up to the server
 }
-
-
 
 function getGroupId() {
         return null;
@@ -298,35 +193,6 @@ function sendMessage(destTargetId, destRoom, text) {
 }
 
 
-function displayFields() {
-
-    var outstr = "Application fields<div style='margin-left:1em'>";
-    outstr += JSON.stringify(easyrtc.getApplicationFields());
-    outstr += "</div><br>";
-
-    outstr += "Session fields<div style='margin-left:1em'>";
-    outstr += JSON.stringify(easyrtc.getSessionFields());
-    outstr += "</div><br>";
-
-    outstr += "Connection fields<div style='margin-left:1em'>";
-    outstr += JSON.stringify(easyrtc.getConnectionFields());
-    outstr += "</div><br>";
-
-    var roomlist = easyrtc.getRoomsJoined();
-    for (var roomname in roomlist) {
-        var roomfields = easyrtc.getRoomFields(roomname);
-        if (roomfields != null) {
-            outstr += "Room " + roomname + " fields<div style='margin-left:1em'>";
-            outstr += JSON.stringify(roomfields);
-            outstr += "</div><br>";
-        }
-    }
-    document.getElementById('fields').innerHTML = outstr;
-}
-
-
-
-
 function loginFailure(errorCode, message) {
     easyrtc.showError("LOGIN-FAILURE", message);
     document.getElementById('connectButton').disabled = false;
@@ -358,9 +224,3 @@ function addApiField() {
     easyrtc.setRoomApiField(roomName, fieldname, fieldvalue);
 }
 
-
-function getIdsOfName() {
-   var name = document.getElementById("targetName").value;
-   var ids = easyrtc.usernameToIds(name);
-   document.getElementById("foundIds").innerHTML = JSON.stringify(ids);
-}
