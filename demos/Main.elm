@@ -1,7 +1,7 @@
 port module Main exposing (..)
 
 import Html exposing (Html, h2, div, text, input, button, hr, textarea, li, ul, b)
-import Html.Attributes exposing (class, id, type_, placeholder, style)
+import Html.Attributes exposing (class, id, type_, placeholder, style, value)
 import Html.Events exposing (onInput, onClick)
 
 
@@ -116,7 +116,7 @@ view model =
             [ hr [] []
             , div [ id "sendMessageArea" ]
                 [ div [ id "iam" ] [ text model.id ]
-                , textarea [ id "sendMessageText", placeholder "Enter your message here", onInput UpdateMessage ] []
+                , textarea [ id "sendMessageText", placeholder "Enter your message here", onInput UpdateMessage, value model.message ] []
                 , text "Rooms"
                 , div [ id "rooms" ] (rooms model)
                 ]

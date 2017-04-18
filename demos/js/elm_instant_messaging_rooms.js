@@ -34,11 +34,10 @@ function initApp() {
 
 function connect(credentials, onSuccess) {
     console.log("Username: ", credentials.username)
-    console.log("Password: ", credentials.password)
     easyrtc.setSocketUrl(":8080");
 
     // Listen for data sent from other clients
-    easyrtc.setPeerListener(peerListener);
+    easyrtc.setPeerListener(addToConversation);
 
     // This will tell us who else is hooked up to the server
     // easyrtc.setRoomOccupantListener(occupantListener);
@@ -50,7 +49,6 @@ function connect(credentials, onSuccess) {
         console.log("disconnect listener fired");
     });
     easyrtc.setUsername(credentials.username);
-    // easyrtc.setCredential({password: credentials.password});
     easyrtc.connect("easyrtc.instantMessaging", onSuccess, loginFailure);
     // easyrtc.connect("easyrtc.instantMessaging", loginSuccess, loginFailure);
 }
@@ -99,7 +97,7 @@ function roomEntryListener(entered, roomName) {
 
 
 function addToConversation(who, msgType, content, targeting) {
-    console.log("received: ", {who: who, content: content});
+    console.log("received: ", {who: who, msgType: msgType, content: content, targeting: targeting});
     app.ports.recvMessage.send({who: who, content: content});
 }
 
@@ -111,30 +109,9 @@ function genRoomOccupantName(roomName) {
     return "roomOccupant_" + roomName;
 }
 
-/*
-function setCredential(event, value) {
-    if (event.keyCode === 13) {
-        easyrtc.setCredential(value);
-    }
-}
-*/
-
-
 
 function leaveRoom(roomName) {
-    if (!roomName) {
-        roomName = document.getElementById("roomToAdd").value;
-    }
-    var entry = document.getElementById(genRoomDivName(roomName));
-    var roomButtonHolder = document.getElementById('rooms');
     easyrtc.leaveRoom(roomName, null);
-    roomButtonHolder.removeChild(entry);
-}
-
-
-
-function peerListener(who, msgType, content, targeting) {
-    addToConversation(who, msgType, content, targeting);
 }
 
 function disconnect() {
@@ -152,44 +129,19 @@ function getGroupId() {
 
 function sendMessage(destTargetId, destRoom, text) {
     console.log("SendMessage("+destRoom+")");
-    // var text = document.getElementById('sendMessageText').value;
     if (text.replace(/\s/g, "").length === 0) { // Don't send just whitespace
         return;
     }
-    var dest;
-    var destGroup = getGroupId();
-    if (destRoom || destGroup) {
-        dest = {};
-        if (destRoom) {
-            dest.targetRoom = destRoom;
-        }
-        if (destGroup) {
-            dest.targetGroup = destGroup;
-        }
-        if (destTargetId) {
-            dest.targetEasyrtcid = destTargetId;
-        }
-    }
-    else if (destTargetId) {
-        dest = destTargetId;
-    }
-    else {
-        easyrtc.showError("user error", "no destination selected");
-        return;
-    }
+    var dest = {};
+    dest.targetRoom = destRoom;
 
-    if( text === "empty") {
-         easyrtc.sendPeerMessage(dest, "message");
-    }
-    else {
     easyrtc.sendDataWS(dest, "message", text, function(reply) {
         if (reply.msgType === "error") {
             easyrtc.showError(reply.msgData.errorCode, reply.msgData.errorText);
         }
     });
-    }
+
     addToConversation("Me", "message", text);
-    document.getElementById('sendMessageText').value = "";
 }
 
 
